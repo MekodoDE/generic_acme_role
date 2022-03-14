@@ -1,0 +1,35 @@
+generic_acme_base_path: "/opt/acme"
+generic_acme_additional_path: []
+generic_acme_uid: 0
+generic_acme_gid: 0
+
+generic_acme_priv_key_path: "/path/to/account.key"
+
+generic_acme_issue_domain: []
+generic_acme_issue_ecc: true
+generic_acme_issue_keylength: "ec-384"
+generic_acme_issue_additional_parameters: ""
+
+# Ports that should be opened in ufw
+generic_acme_allow_firewall_ports: []
+
+generic_acme_container_count: 1
+generic_acme_container_name: "acme"
+generic_acme_container_image: "neilpang/acme.sh"
+generic_acme_container_ports: []
+generic_acme_container_volumes:
+  - "{{ generic_acme_base_path }}:/acme.sh"
+generic_acme_container_links: []
+generic_acme_container_additional_env: {}
+
+generic_acme_container_state: "started"
+generic_acme_container_recreate: no
+generic_acme_container_auto_remove: no
+generic_acme_container_cpu_quota: 0
+generic_acme_container_memory: 0
+generic_acme_container_memory_reservation: 0
+generic_acme_container_memory_swap: 0
+generic_acme_container_network_mode: "default"
+generic_acme_container_networks: []
+generic_acme_container_restart: no
+generic_acme_container_restart_policy: "unless-stopped"

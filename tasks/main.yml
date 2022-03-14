@@ -1,0 +1,86 @@
+---
+- name: Create base path
+  file:
+    path: "{{ generic_acme_base_path }}"
+    state: directory
+    recurse: true
+    owner: "{{ generic_acme_uid }}"
+    group: "{{ generic_acme_gid }}"
+
+- name: Create additional paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+    owner: "{{ generic_acme_uid }}"
+    group: "{{ generic_acme_gid }}"
+  loop: "{{ generic_acme_additional_path }}"
+
+- name: Deploy container
+  community.docker.docker_container:
+    name: "{{ generic_acme_container_name }}"
+    image: "{{ generic_acme_container_image }}"
+    user: "{{ generic_acme_uid }}:{{ generic_acme_gid }}"
+    published_ports: "{{ generic_acme_container_ports }}"
+    env: "{{ generic_acme_container_env | combine(generic_acme_container_additional_env) }}"
+    volumes: "{{ generic_acme_container_volumes }}"
+    links: "{{ generic_acme_container_links }}"
+    state: "{{ generic_acme_container_state }}"
+    recreate: "{{ generic_acme_container_recreate }}"
+    auto_remove: "{{ generic_acme_container_auto_remove }}"
+    cpu_quota: "{{ generic_acme_container_cpu_quota }}"
+    memory_reservation: "{{ generic_acme_container_memory_reservation }}"
+    memory_swap: "{{ generic_acme_container_memory_swap }}"
+    network_mode: "{{ generic_acme_container_network_mode }}"
+    networks: "{{ generic_acme_container_networks }}"
+    restart: "{{ generic_acme_container_restart }}"
+    restart_policy: "{{ generic_acme_container_restart_policy }}"
+    command: daemon
+
+- name: Check if acme folder is empty
+  stat:
+    path: "{{ generic_acme_base_path }}/account.conf"
+  register: generic_acme_account_file
+
+- name: Check if private key exists
+  stat:
+    path: "{{ generic_acme_priv_key_path }}"
+  delegate_to: localhost
+  register: generic_acme_priv_key_file
+
+- name: Deploy private key if provided
+  block:
+  - name: Create account folder
+    file:
+      path: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/"
+      state: directory
+      recurse: true
+      owner: "{{ generic_acme_uid }}"
+      group: "{{ generic_acme_gid }}"
+
+  - name: Copy private key
+    copy:
+      src: "{{ generic_acme_priv_key_path }}"
+      dest: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/account.key"
+  when: generic_acme_priv_key_file.stat.exists
+
+- name: Register new letsencrypt account
+  block:
+  - name: Run register command
+    community.docker.docker_container_exec:
+      container: "{{ generic_acme_container_name }}"
+      command: "acme.sh --register-account --server letsencrypt"
+    register: generic_acme_acc_register
+
+  - name: Print information
+    debug:
+      msg:
+      - "Please create an IT Helpdesk ticket and ask for provide the following key for acme challenge. Run this script again when then the key is in place."
+      - "Key: {{ generic_acme_acc_register.stdout | regex_search(\"ACCOUNT_THUMBPRINT='(.*)'\", \"\\1\") | first }}"
+  when: not generic_acme_account_file.stat.exists
+
+- name: Issue certificates
+  community.docker.docker_container_exec:
+    container: "{{ generic_acme_container_name }}"
+    command: "acme.sh --issue --stateless --server letsencrypt {{ '--ecc' if generic_acme_issue_ecc else '' }} --keylength {{ generic_acme_issue_keylength }} -d {{ item | join(' -d ') }} {{ generic_acme_issue_additional_parameters }}"
+  loop: "{{ generic_acme_issue_domain }}"

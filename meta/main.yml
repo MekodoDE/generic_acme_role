@@ -1,0 +1,25 @@
+galaxy_info:
+  role_name: generic_acme_role
+  description: A role to deploy ACME in a Docker container to issue and renew Let's Encrypt certificates.
+  author: Valtech Mobility
+  company: Valtech Mobility
+
+  issue_tracker_url: https://intranet.valtech.com/vita/projects/VMCQ
+
+  min_ansible_version: 2.9
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - ">= 18.04"
+
+  galaxy_tags:
+  - acme
+  - letsencrypt
+  - tls
+  - ssl
+  - certificate
+  - docker
+  - ubuntu
+
+dependencies: []
