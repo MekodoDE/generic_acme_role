@@ -79,8 +79,22 @@
       - "Key: {{ generic_acme_acc_register.stdout | regex_search(\"ACCOUNT_THUMBPRINT='(.*)'\", \"\\1\") | first }}"
   when: not generic_acme_account_file.stat.exists
 
+- name: Check if certificate already exists
+  find:
+    path: "{{ generic_acme_issue_path }}"
+    patterns: "{{ generic_acme_issue_domain[0] }}"
+    use_regex: yes
+    file_type: directory
+  register: generic_acme_cert_path
+
 - name: Issue certificates
   community.docker.docker_container_exec:
     container: "{{ generic_acme_container_name }}"
-    command: "acme.sh --issue --stateless --server letsencrypt {{ '--ecc' if generic_acme_issue_ecc else '' }} --keylength {{ generic_acme_issue_keylength }} -d {{ item | join(' -d ') }} {{ generic_acme_issue_additional_parameters }}"
-  loop: "{{ generic_acme_issue_domain }}"
+    command: "acme.sh --issue --stateless --server letsencrypt {{ '--ecc' if generic_acme_issue_ecc else '' }} --keylength {{ generic_acme_issue_keylength }} -d {{ generic_acme_issue_domain | join(' -d ') }} {{ generic_acme_issue_additional_parameters }}"
+  when: generic_acme_cert_path.files | length == 0
+
+- name: Deploy certificates
+  community.docker.docker_container_exec:
+    container: "{{ generic_acme_container_name }}"
+    command: "acme.sh --deploy {{ '--ecc' if generic_acme_issue_ecc else '' }} -d {{ generic_acme_deploy_domain }} --deploy-hook {{ generic_acme_deploy_hook }} {{ generic_acme_deploy_additional_parameters }}"
+  when: generic_acme_deploy

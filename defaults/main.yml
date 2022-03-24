@@ -8,7 +8,14 @@ generic_acme_priv_key_path: "/path/to/account.key"
 generic_acme_issue_domain: []
 generic_acme_issue_ecc: true
 generic_acme_issue_keylength: "ec-384"
+generic_acme_issue_path: "{{ generic_acme_base_path }}"
 generic_acme_issue_additional_parameters: ""
+
+generic_acme_deploy: true
+generic_acme_deploy_hook: "docker"
+generic_acme_deploy_domain: "{{ generic_acme_issue_domain[0] }}"
+generic_acme_deploy_additional_parameters: ""
+
 
 # Ports that should be opened in ufw
 generic_acme_allow_firewall_ports: []
@@ -19,11 +26,19 @@ generic_acme_container_image: "neilpang/acme.sh"
 generic_acme_container_ports: []
 generic_acme_container_volumes:
   - "{{ generic_acme_base_path }}:/acme.sh"
+  - "/var/run/docker.sock:/var/run/docker.sock"
 generic_acme_container_links: []
-generic_acme_container_additional_env: {}
+generic_acme_container_additional_env:
+  DEPLOY_DOCKER_CONTAINER_LABEL: "sh.acme.autoload.domain={{ generic_acme_deploy_domain }}"
+  DEPLOY_DOCKER_CONTAINER_KEY_FILE: "/etc/nginx/ssl/{{ generic_acme_deploy_domain }}/key.pem"
+  DEPLOY_DOCKER_CONTAINER_CERT_FILE: "/etc/nginx/ssl/{{ generic_acme_deploy_domain }}/cert.pem"
+  DEPLOY_DOCKER_CONTAINER_CA_FILE: "/etc/nginx/ssl/{{ generic_acme_deploy_domain }}/ca.pem"
+  DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE: "/etc/nginx/ssl/{{ generic_acme_deploy_domain }}/full.pem"
+  DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: "service nginx force-reload"
+  DEPLOY_DOCKER_CONTAINER_FQDN: "{{ generic_acme_deploy_domain }}"
 
 generic_acme_container_state: "started"
-generic_acme_container_recreate: no
+generic_acme_container_recreate: yes  # needs to yes because changes in the volumes can cause errors
 generic_acme_container_auto_remove: no
 generic_acme_container_cpu_quota: 0
 generic_acme_container_memory: 0
