@@ -15,10 +15,7 @@ Role Variables
 For all variables please see `defaults/main.yml`.
 
     generic_acme_issue_domain:
-    - decgn-pr-abc.de.valtech.com
-    - decgn-pr-xyz.de.valtech.com
-
-Set the list of all domains the certificate should represent. Default is `hostname + .de.valtech.com`
+    - example.tld
 
     generic_acme_priv_key_path
 
