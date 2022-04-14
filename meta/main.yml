@@ -4,7 +4,7 @@ galaxy_info:
   author: Valtech Mobility
   company: Valtech Mobility
 
-  issue_tracker_url: https://github.com/ValtechMobility/generic_renovate_role/issues
+  issue_tracker_url: https://github.com/ValtechMobility/generic_acme_role/issues
 
   min_ansible_version: 2.9
 
