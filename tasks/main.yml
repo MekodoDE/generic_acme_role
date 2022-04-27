@@ -45,7 +45,7 @@
 - name: Check if private key exists
   stat:
     path: "{{ generic_acme_priv_key_path }}"
-  delegate_to: localhost
+  delegate_to: 127.0.0.1
   register: generic_acme_priv_key_file
 
 - name: Deploy private key if provided
