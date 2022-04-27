@@ -1,6 +1,6 @@
 galaxy_info:
   role_name: generic_acme_role
-  description: A role to deploy ACME in a Docker container to issue and renew Let's Encrypt certificates.
+  description: A role to deploy ACME in a Docker container to issue, renew and deploy a Let's Encrypt certificate.
   author: Valtech Mobility
   company: Valtech Mobility
 

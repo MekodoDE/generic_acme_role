@@ -1,33 +1,64 @@
+---
+# Path for persistent data
 generic_acme_base_path: "/opt/acme"
+
+# Additional required paths for persistent data
 generic_acme_additional_path: []
+
+# UID for the docker container
 generic_acme_uid: 0
+
+# GID for the docker container
 generic_acme_gid: 0
 
+# Path to the account.key of Lets Encrypt if already exist
 generic_acme_priv_key_path: "/path/to/account.key"
 
+# List of domains for which the certificate is valid
 generic_acme_issue_domain: []
+
+# Issue a Elliptic Curve certifcate
 generic_acme_issue_ecc: true
+
+# Key length e.g. 2048, 3072, 4096, 8192 oder ec-256, ec-384
 generic_acme_issue_keylength: "ec-384"
+
+# Path where the certificates are stored
 generic_acme_issue_path: "{{ generic_acme_base_path }}"
+
+# Additional parameters for issue command
 generic_acme_issue_additional_parameters: ""
 
+# Deploy the certificate
 generic_acme_deploy: true
+
+# Type of deploy hook https://github.com/acmesh-official/acme.sh/wiki/deployhooks
 generic_acme_deploy_hook: "docker"
+
+# Name of the issued certificate which should be deployed
 generic_acme_deploy_domain: "{{ generic_acme_issue_domain[0] }}"
+
+# Additional parameters for deploy command
 generic_acme_deploy_additional_parameters: ""
 
-
-# Ports that should be opened in ufw
-generic_acme_allow_firewall_ports: []
-
-generic_acme_container_count: 1
+# Container name
 generic_acme_container_name: "acme"
+
+# Container image
 generic_acme_container_image: "neilpang/acme.sh"
+
+# List of exposed ports e.g. "80:80"
 generic_acme_container_ports: []
+
+# List of attached volumes
 generic_acme_container_volumes:
   - "{{ generic_acme_base_path }}:/acme.sh"
   - "/var/run/docker.sock:/var/run/docker.sock"
+
+# List of linked containers
 generic_acme_container_links: []
+
+# Dictionary of additional environment variables
 generic_acme_container_additional_env:
   DEPLOY_DOCKER_CONTAINER_LABEL: "sh.acme.autoload.domain={{ generic_acme_deploy_domain }}"
   DEPLOY_DOCKER_CONTAINER_KEY_FILE: "/etc/nginx/ssl/{{ generic_acme_deploy_domain }}/key.pem"
