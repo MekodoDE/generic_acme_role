@@ -38,6 +38,7 @@ None
         generic_acme_issue_domain:
           - example.tld
 
+[examples/deploy-acme.yml](examples/deploy-acme.yml):
 Deploy a certificate for example.tld to a nginx container with label `example.tld`.
 
     ---
@@ -58,4 +59,5 @@ Deploy a certificate for example.tld to a nginx container with label `example.tl
             DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: "systemctl restart apache2"
             DEPLOY_DOCKER_CONTAINER_FQDN: "example.com"
 
+[examples/deploy-acme-apache.yml](examples/deploy-acme-apache.yml):
 Deploy a certificate for example.com and example.org apache container with label `example.com`.

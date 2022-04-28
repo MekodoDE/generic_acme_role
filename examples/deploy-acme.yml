@@ -1,0 +1,7 @@
+---
+- hosts: all
+  roles:
+    - generic_acme_role
+  vars:
+    generic_acme_issue_domain:
+      - example.tld
