@@ -39,62 +39,34 @@
 
 - name: Check if acme folder is empty
   stat:
-    path: "{{ generic_acme_base_path }}/account.conf"
+    path: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/account.key"
   register: generic_acme_account_file
 
-- name: Check if private key exists
-  stat:
-    path: "{{ generic_acme_priv_key_path }}"
-  delegate_to: 127.0.0.1
-  register: generic_acme_priv_key_file
-
-- name: Deploy private key if provided
-  block:
-  - name: Create account folder
-    file:
-      path: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/"
-      state: directory
-      recurse: true
-      owner: "{{ generic_acme_uid }}"
-      group: "{{ generic_acme_gid }}"
-
-  - name: Copy private key
-    copy:
-      src: "{{ generic_acme_priv_key_path }}"
-      dest: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/account.key"
-  when: generic_acme_priv_key_file.stat.exists
-
-- name: Register new letsencrypt account
-  block:
-  - name: Run register command
-    community.docker.docker_container_exec:
-      container: "{{ generic_acme_container_name }}"
-      command: "acme.sh --register-account --server letsencrypt"
-    register: generic_acme_acc_register
-
-  - name: Print information
-    debug:
-      msg:
-      - "Please create an IT Helpdesk ticket and ask for provide the following key for acme challenge. Run this script again when then the key is in place."
-      - "Key: {{ generic_acme_acc_register.stdout | regex_search(\"ACCOUNT_THUMBPRINT='(.*)'\", \"\\1\") | first }}"
+- include_tasks:
+    file: create_account.yml
   when: not generic_acme_account_file.stat.exists
 
 - name: Check if certificate already exists
   find:
     path: "{{ generic_acme_issue_path }}"
-    patterns: "{{ generic_acme_issue_domain[0] }}"
+    patterns: "^{{ generic_acme_issue_domain[0] }}(_ecc)?$"
     use_regex: yes
     file_type: directory
   register: generic_acme_cert_path
+
+- name: Check if fullchain already exists
+  stat:
+    path: "{{ generic_acme_cert_path['files'][0]['path'] }}/{{ generic_acme_issue_domain[0] }}.cer"
+  register: generic_acme_fullchain_file
 
 - name: Issue certificates
   community.docker.docker_container_exec:
     container: "{{ generic_acme_container_name }}"
     command: "acme.sh --issue --stateless --server letsencrypt {{ '--ecc' if generic_acme_issue_ecc else '' }} --keylength {{ generic_acme_issue_keylength }} -d {{ generic_acme_issue_domain | join(' -d ') }} {{ generic_acme_issue_additional_parameters }}"
-  when: generic_acme_cert_path.files | length == 0
+  when: not generic_acme_fullchain_file.stat.exists
 
 - name: Deploy certificates
   community.docker.docker_container_exec:
     container: "{{ generic_acme_container_name }}"
     command: "acme.sh --deploy {{ '--ecc' if generic_acme_issue_ecc else '' }} -d {{ generic_acme_deploy_domain }} --deploy-hook {{ generic_acme_deploy_hook }} {{ generic_acme_deploy_additional_parameters }}"
-  when: generic_acme_deploy
+  when: generic_acme_deploy and (generic_acme_fullchain_file.stat.exists or generic_acme_certificate_issued.changed)

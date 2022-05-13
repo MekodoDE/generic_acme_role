@@ -1,0 +1,37 @@
+- name: Check if private key exists
+  stat:
+    path: "{{ generic_acme_priv_key_path }}"
+  delegate_to: 127.0.0.1
+  register: generic_acme_priv_key_file
+
+- name: Deploy private key if provided
+  block:
+    - name: Create account folder
+      file:
+        path: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/"
+        state: directory
+        recurse: true
+        owner: "{{ generic_acme_uid }}"
+        group: "{{ generic_acme_gid }}"
+
+    - name: Copy private key
+      copy:
+        src: "{{ generic_acme_priv_key_path }}"
+        dest: "{{ generic_acme_base_path }}/ca/acme-v02.api.letsencrypt.org/directory/account.key"
+  when: generic_acme_priv_key_file.stat.exists
+
+- name: Register new letsencrypt account
+  block:
+    - name: Run register command
+      community.docker.docker_container_exec:
+        container: "{{ generic_acme_container_name }}"
+        command: "acme.sh --register-account --server letsencrypt"
+      register: generic_acme_acc_register
+
+    - name: Print information
+      block:
+        - debug:
+            msg:
+              - "Please create an IT Helpdesk ticket and ask for provide the following key for acme challenge. Run this script again when then the key is in place."
+              - "Key: {{ generic_acme_acc_register.stdout | regex_search(\"ACCOUNT_THUMBPRINT='(.*)'\", \"\\1\") | first }}"
+        - meta: end_play
