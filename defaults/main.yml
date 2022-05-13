@@ -50,7 +50,7 @@ generic_acme_container_image: "neilpang/acme.sh"
 # List of exposed ports e.g. "80:80"
 generic_acme_container_ports: []
 
-# List of attached volumes
+# List of attached volumes e.g "/root/data:/container/data"
 generic_acme_container_volumes:
   - "{{ generic_acme_base_path }}:/acme.sh"
   - "/var/run/docker.sock:/var/run/docker.sock"
@@ -68,14 +68,35 @@ generic_acme_container_additional_env:
   DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: "service nginx force-reload"
   DEPLOY_DOCKER_CONTAINER_FQDN: "{{ generic_acme_deploy_domain }}"
 
-generic_acme_container_state: "started"
-generic_acme_container_recreate: yes  # needs to yes because changes in the volumes can cause errors
+# Enable auto removal when the container process exits
 generic_acme_container_auto_remove: no
+
+# Limit for CPU
 generic_acme_container_cpu_quota: 0
+
+# Limit for memory (RAM)
 generic_acme_container_memory: 0
+
+# Reservation of memory (RAM)
 generic_acme_container_memory_reservation: 0
+
+# Total limit for memory (RAM)
 generic_acme_container_memory_swap: 0
+
+# Network mode of the container e.g. bridge, <container id>, host
 generic_acme_container_network_mode: "default"
+
+# List of networks the container belongs to
 generic_acme_container_networks: []
+
+# Force recreation of the container
+generic_acme_container_recreate: yes  # needs to yes because changes in the volumes can cause errors
+
+# Force restart of the container if already started
 generic_acme_container_restart: no
+
+# Container restart policy e.g always, no, on-failure, unless-stopped
 generic_acme_container_restart_policy: "unless-stopped"
+
+# Set the state of the container e.g absent, present, stopped, started
+generic_acme_container_state: "started"
