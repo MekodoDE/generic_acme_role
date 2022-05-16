@@ -49,7 +49,7 @@ Deploy a certificate for example.tld to a nginx container with label `example.tl
         generic_acme_issue_domain:
           - example.com
           - example.org
-        generic_acme_priv_key_path: /home/user/
+        generic_acme_priv_key_path: /home/user/account.key
         generic_acme_container_additional_env:
             DEPLOY_DOCKER_CONTAINER_LABEL: "sh.acme.autoload.domain=example.com"
             DEPLOY_DOCKER_CONTAINER_KEY_FILE: "/etc/ssl/certsexample.org/key.pem"
