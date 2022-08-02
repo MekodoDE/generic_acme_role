@@ -58,15 +58,17 @@
   stat:
     path: "{{ generic_acme_cert_path['files'][0]['path'] }}/{{ generic_acme_issue_domain[0] }}.cer"
   register: generic_acme_fullchain_file
+  when: generic_acme_cert_path['files']|length > 0
 
 - name: Issue certificates
   community.docker.docker_container_exec:
     container: "{{ generic_acme_container_name }}"
     command: "acme.sh --issue --stateless --server letsencrypt {{ '--ecc' if generic_acme_issue_ecc else '' }} --keylength {{ generic_acme_issue_keylength }} -d {{ generic_acme_issue_domain | join(' -d ') }} {{ generic_acme_issue_additional_parameters }}"
-  when: not generic_acme_fullchain_file.stat.exists
+  register: generic_acme_certificate_issued
+  when: generic_acme_cert_path['files']|length == 0 or generic_acme_fullchain_file is defined and not generic_acme_fullchain_file.stat.exists
 
 - name: Deploy certificates
   community.docker.docker_container_exec:
     container: "{{ generic_acme_container_name }}"
     command: "acme.sh --deploy {{ '--ecc' if generic_acme_issue_ecc else '' }} -d {{ generic_acme_deploy_domain }} --deploy-hook {{ generic_acme_deploy_hook }} {{ generic_acme_deploy_additional_parameters }}"
-  when: generic_acme_deploy and (generic_acme_fullchain_file.stat.exists or generic_acme_certificate_issued.changed)
+  when: generic_acme_deploy
